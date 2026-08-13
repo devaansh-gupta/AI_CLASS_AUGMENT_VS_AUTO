@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Recruitment — Automation × Augmentation Architecture</title>
+<style>
+:root{
+  --bg:#050a16;--panel:#0b1428;--panel2:#0c1830;--line:#16233f;
+  --cyan:#22d3ee;--emerald:#34d399;--amber:#fbbf24;--violet:#a78bfa;
+  --magenta:#f472b6;--orange:#fb923c;--red:#f87171;--text:#e2e8f0;--muted:#64748b
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{overflow-x:hidden}
+body{
+ background:radial-gradient(1200px 700px at 50% 30%,#0a1430 0%,var(--bg) 60%);
+ color:var(--text);font-family:"Segoe UI",system-ui,sans-serif;padding-bottom:30px
+}
+body:before{
+ content:"";position:fixed;inset:0;pointer-events:none;
+ background:repeating-linear-gradient(0deg,rgba(56,89,146,.045) 0 1px,transparent 1px 48px),
+ repeating-linear-gradient(90deg,rgba(56,89,146,.045) 0 1px,transparent 1px 48px)
+}
+@keyframes dashflow{to{stroke-dashoffset:-28px}}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.35);opacity:.45}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes spinrev{to{transform:rotate(-360deg)}}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+header{
+ position:sticky;top:0;z-index:40;display:flex;flex-wrap:wrap;gap:10px;
+ align-items:center;justify-content:space-between;padding:12px 16px;
+ border-bottom:1px solid var(--line);border-top:4px solid #164e63;
+ background:rgba(5,10,22,.93);backdrop-filter:blur(9px)
+}
+.brand{display:flex;align-items:center;gap:11px}
+.logoMark{
+ width:42px;height:42px;border-radius:50%;display:grid;place-items:center;
+ background:#0b2437;border:2px solid var(--cyan);font-size:19px;
+ box-shadow:0 0 18px rgba(34,211,238,.25);animation:pulse 3s infinite
+}
+.brand h1{
+ font-size:18px;letter-spacing:4px;font-weight:800;
+ background:linear-gradient(90deg,var(--cyan),var(--violet));
+ -webkit-background-clip:text;background-clip:text;color:transparent
+}
+.brand p{font-size:8px;color:var(--muted);letter-spacing:2px}
+.stats{display:flex;gap:18px;overflow:auto}
+.stat{min-width:92px}.lbl{font-size:8px;letter-spacing:2px;color:var(--muted)}
+.val{font-size:15px;font-weight:800;color:var(--cyan)}
+nav{max-width:1120px;margin:10px auto 0;padding:0 12px;display:flex;gap:6px;flex-wrap:wrap}
+nav button,.archbar button{
+ border:1px solid var(--line);background:var(--panel);border-radius:18px;
+ padding:6px 11px;font-size:10px;font-weight:700;color:var(--muted);cursor:pointer
+}
+nav button.on,.archbar button.on{background:rgba(34,211,238,.14);color:var(--cyan);border-color:var(--cyan)}
+main{max-width:1120px;margin:auto;padding-bottom:25px}
+.card{
+ background:var(--panel);border:1px solid var(--line);border-radius:16px;
+ margin:12px 12px 0;padding:14px;box-shadow:0 4px 24px rgba(0,0,0,.13);
+ animation:rise .45s both
+}
+.card h2{font-size:13px;color:var(--cyan);letter-spacing:1px;margin-bottom:7px}
+.note{font-size:10.5px;color:#8ca3b9;line-height:1.55}
+.archbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.archbar .hint{margin-left:auto;font-size:9px;color:var(--muted)}
+.stagewrap{position:relative}
+.scrollwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px}
+#diagram{display:block;width:1600px;height:auto;background:radial-gradient(circle at 50% 42%,rgba(34,211,238,.04),transparent 34%)}
+.band-lbl{fill:#3b4d6e;font-size:13px;letter-spacing:4px;font-weight:600}
+.band-line{stroke:#182742;stroke-width:1;stroke-dasharray:2 6}
+.edge{
+ fill:none;stroke-width:1.8;opacity:.82;stroke-dasharray:5 9;
+ animation:dashflow 4.8s linear infinite;transition:opacity .3s,stroke-width .3s
+}
+.edge.hot{stroke-width:3.4;opacity:1;filter:drop-shadow(0 0 8px rgba(34,211,238,.75))}
+.edge.auto{stroke:var(--cyan)}.edge.aug{stroke:var(--violet)}
+.edge.hybrid{stroke:var(--emerald)}.edge.risk{stroke:var(--orange)}
+.node{cursor:pointer;transition:opacity .25s}
+.node rect{fill:#0c1830;stroke:#2a3f66;stroke-width:1.4;transition:all .25s}
+.node:hover rect,.node.sel rect{stroke:var(--cyan);filter:drop-shadow(0 0 14px rgba(34,211,238,.7))}
+.node.hot rect{stroke:var(--emerald);filter:drop-shadow(0 0 16px rgba(52,211,153,.65))}
+.node text{pointer-events:none}.n-icon{font-size:17px}.n-name{fill:var(--text);font-size:12px;font-weight:700}
+.n-sub{fill:var(--muted);font-size:9px}.mode{font-size:8px;font-weight:900;letter-spacing:1px}
+.node.auto .mode{fill:var(--cyan)}.node.aug .mode{fill:var(--violet)}.node.hybrid .mode{fill:var(--emerald)}
+.dim{opacity:.10!important}
+.core-ring{fill:none;stroke:var(--cyan);stroke-dasharray:6 10;opacity:.7;animation:spin 55s linear infinite}
+.core-ring2{fill:none;stroke:var(--violet);stroke-dasharray:2 14;opacity:.6;animation:spinrev 38s linear infinite}
+#panel{
+ position:absolute;top:10px;right:10px;width:310px;max-height:calc(100% - 20px);
+ overflow-y:auto;background:rgba(11,20,40,.97);border:1px solid var(--line);
+ border-radius:14px;padding:14px;font-size:11.5px;line-height:1.5;
+ border-top:3px solid var(--cyan);z-index:7;display:none
+}
+#panel.open{display:block;animation:rise .3s both}
+#panel h3{font-size:13px;color:var(--cyan);margin-bottom:5px}
+#panel .tag{display:inline-block;font-size:8.5px;letter-spacing:2px;color:var(--muted);border:1px solid var(--line);border-radius:20px;padding:2px 8px;margin-bottom:8px}
+#btnClose{position:absolute;right:8px;top:6px;background:none;border:0;color:var(--muted);font-size:15px;cursor:pointer}
+.io{margin-top:9px}.io b{font-size:9px;letter-spacing:2px;color:var(--muted)}
+.io ul{list-style:none;margin-top:3px}.io li{padding:2px 0;color:#9fb3d1}.io li:before{content:"→ ";color:var(--cyan)}
+.choice{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}
+.choice div{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px}
+.choice b{font-size:9px}.choice span{display:block;font-size:9px;color:#8fa6bb;line-height:1.45;margin-top:4px}
+.recommend{margin-top:9px;padding:9px;border:1px solid rgba(52,211,153,.35);border-radius:10px;background:rgba(52,211,153,.06);color:#bff5d9}
+.legend{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;padding-top:8px}
+.leg{display:flex;align-items:center;gap:5px;font-size:9.5px;color:#9fb3d1}.dot{width:8px;height:8px;border-radius:50%}
+.scenario{
+ margin:12px 12px 0;padding:12px;border:1px solid var(--line);border-radius:14px;
+ background:var(--panel2)
+}
+.scenario h3{font-size:11px;color:var(--cyan);letter-spacing:1px;margin-bottom:8px}
+.scenarioBtns{display:flex;gap:6px;flex-wrap:wrap}
+.scenarioBtns button{
+ background:transparent;border:1px solid var(--line);color:var(--muted);
+ border-radius:10px;padding:7px 10px;font-size:10px;font-weight:800;cursor:pointer
+}
+.scenarioBtns button.on{color:var(--cyan);border-color:var(--cyan);background:rgba(34,211,238,.09)}
+.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:9px}
+.kpi{background:#09182b;border:1px solid var(--line);border-radius:10px;padding:9px;text-align:center}
+.kpi b{display:block;font-size:16px;color:var(--cyan)}.kpi span{font-size:8px;color:var(--muted)}
+.rec{
+ margin-top:10px;border-left:3px solid var(--emerald);padding:8px 10px;
+ font-size:10.5px;color:#a9c0d3;line-height:1.5
+}
+.rec strong{color:#bfffe0}
+@media(max-width:820px){
+ #panel{position:fixed;left:10px;right:10px;bottom:10px;top:auto;width:auto;max-height:46vh}
+ .hint{width:100%;margin-left:0!important}.metrics{grid-template-columns:repeat(2,1fr)}
+}
+
+.process-controls{margin-top:10px;padding-top:9px;border-top:1px solid var(--line)}
+.process-controls b{font-size:8.5px;letter-spacing:2px;color:var(--muted)}
+.process-buttons{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.process-buttons button{border:1px solid var(--line);background:#081326;color:#8296ad;border-radius:9px;padding:6px 8px;font-size:9px;font-weight:800;cursor:pointer}
+.process-buttons button.active.auto{border-color:var(--cyan);color:var(--cyan);background:rgba(34,211,238,.09)}
+.process-buttons button.active.aug{border-color:var(--violet);color:var(--violet);background:rgba(167,139,250,.09)}
+.process-buttons button.active.manual{border-color:var(--orange);color:var(--orange);background:rgba(251,146,60,.09)}
+.cascade{margin-top:9px;padding:9px;border-radius:10px;background:#081326;border:1px solid var(--line)}
+.cascade .row{display:flex;justify-content:space-between;gap:8px;padding:3px 0;font-size:9px;color:#93a9c1}
+.cascade .row strong{color:#dbeafe}
+.cascade .delta{font-weight:900}
+.node.manual .mode{fill:var(--orange)}
+.node.manual rect{border-color:var(--orange)}
+.node.auto rect{stroke:#245a72}.node.aug rect{stroke:#4c3b78}.node.hybrid rect{stroke:#28614f}
+.edge.manual{stroke:var(--orange)}
+.edge.manual.hot{filter:drop-shadow(0 0 8px rgba(251,146,60,.65))}
+.edge.cascade{stroke-width:4;opacity:1;filter:drop-shadow(0 0 10px rgba(34,211,238,.55))}
+.cascadePulse{fill:none;stroke:var(--cyan);stroke-width:2;opacity:.7}
+
+.tabworkspace{display:none;margin:12px 12px 0;padding:14px;background:var(--panel);border:1px solid var(--line);border-radius:16px;animation:rise .35s both}
+.tabworkspace.active{display:block}
+.tabhead{display:flex;align-items:baseline;gap:12px;margin-bottom:11px}
+.tabhead span{font-size:12px;font-weight:900;letter-spacing:2px;color:var(--cyan)}
+.tabhead small{font-size:8px;letter-spacing:1.5px;color:var(--muted)}
+.logicgrid,.spatialgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.logiccard,.spatialgrid>div{padding:11px;background:#081326;border:1px solid var(--line);border-radius:11px}
+.logiccard b,.spatialgrid b{display:block;font-size:9px;letter-spacing:1.5px;color:var(--cyan)}
+.logiccard p,.spatialgrid p{font-size:10px;line-height:1.5;color:#9eb2c9;margin-top:5px}
+.logiccard em{display:block;margin-top:7px;font-size:9px;color:#647d99;font-style:normal}
+.spatialgrid strong{display:block;font-size:11px;color:#dbeafe;margin-top:5px}
+.timeline{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+.timeline>div{position:relative;min-height:110px;padding:11px;background:#081326;border:1px solid var(--line);border-radius:11px}
+.timeline>div:not(:last-child):after{content:"→";position:absolute;right:-11px;top:43%;z-index:2;color:var(--cyan);font-weight:900}
+.timeline strong{display:block;font-size:9px;letter-spacing:1.5px;color:var(--cyan)}
+.timeline span{display:block;margin-top:8px;font-size:9.5px;line-height:1.5;color:#9eb2c9}
+.examplebox{margin-top:10px;padding:12px;border:1px solid #1b3550;border-radius:13px;background:linear-gradient(135deg,rgba(34,211,238,.045),rgba(167,139,250,.045))}
+.examplehead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.examplehead span{display:block;font-size:8px;letter-spacing:2px;color:var(--muted)}
+.examplehead small{display:block;margin-top:3px;font-size:11px;font-weight:900;color:#dbeafe;letter-spacing:1px}
+.examplemode{font-size:8px;font-weight:900;letter-spacing:1.5px;padding:5px 8px;border-radius:10px;border:1px solid var(--cyan);color:var(--cyan)}
+.exampletext{margin-top:8px;color:#9fb3c9;font-size:10.5px;line-height:1.55}
+.impactgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:9px}
+.impactcol{padding:9px;border-radius:10px;background:#071124;border:1px solid var(--line)}
+.impactcol b{display:block;font-size:8px;letter-spacing:1.5px}
+.impactcol span{display:block;margin-top:5px;font-size:9.5px;line-height:1.5;color:#9eb2c9}
+.impactcol.process b{color:var(--cyan)}.impactcol.employee b{color:var(--violet)}.impactcol.business b{color:var(--emerald)}
+@media(max-width:820px){
+ .logicgrid,.spatialgrid,.impactgrid{grid-template-columns:1fr}
+ .timeline{grid-template-columns:1fr}
+ .timeline>div:not(:last-child):after{content:"↓";right:48%;top:auto;bottom:-13px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="logoMark">AI</div>
+    <div>
+      <h1>A I R E C R U I T</h1>
+      <p>AI RECRUITMENT · AUTOMATION × AUGMENTATION · LIVING OPERATING MODEL</p>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="lbl">CANDIDATES</div><div class="val" id="sCand">1,248</div></div>
+    <div class="stat"><div class="lbl">SCREEN TIME</div><div class="val" id="sTime">18m</div></div>
+    <div class="stat"><div class="lbl">DECISION</div><div class="val" id="sQuality">92%</div></div>
+    <div class="stat"><div class="lbl">HUMAN OWNERSHIP</div><div class="val">100%</div></div>
+  </div>
+</header>
+
+<nav id="topTabs">
+  <button class="on" data-tab="architecture">🏗 Architecture</button>
+  <button data-tab="logic">▣ Decision Logic</button>
+  <button data-tab="temporal">↻ Temporal Scale</button>
+  <button data-tab="spatial">◎ Spatial Scale</button>
+</nav>
+
+<main>
+<section class="card">
+  <h2>🏗 LIVE BUSINESS-PROCESS ARCHITECTURE</h2>
+  <div class="archbar">
+    <button id="zoomOut">−</button><button id="fit">FIT</button><button id="zoomIn">＋</button>
+    <button id="pause">⏸</button><button id="speed">1×</button>
+    <span class="hint">Animated flow is always live · hover to trace · click any node to inspect</span>
+  </div>
+
+  <div class="stagewrap">
+    <div class="scrollwrap" id="scrollwrap">
+      <svg id="diagram" viewBox="0 0 1600 1080">
+        <defs>
+          <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+            <feGaussianBlur stdDeviation="4" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <radialGradient id="coreGrad"><stop offset="0%" stop-color="#123055"/><stop offset="100%" stop-color="#081226"/></radialGradient>
+        </defs>
+        <g id="bands"></g><g id="edges"></g><g id="particles"></g><g id="nodes"></g>
+      </svg>
+    </div>
+    <aside id="panel"></aside>
+  </div>
+
+  <div class="legend">
+    <div class="leg"><span class="dot" style="background:var(--cyan)"></span>AUTOMATION</div>
+    <div class="leg"><span class="dot" style="background:var(--violet)"></span>AUGMENTATION</div>
+    <div class="leg"><span class="dot" style="background:var(--emerald)"></span>FEEDBACK / HYBRID</div>
+    <div class="leg"><span class="dot" style="background:var(--orange)"></span>RISK / EXCEPTION</div>
+  </div>
+</section>
+
+
+<section class="tabworkspace" id="logicTab">
+  <div class="tabhead"><span>DECISION LOGIC</span><small>WHY A PROCESS SHOULD BE AUTOMATED, AUGMENTED OR LEFT MANUAL</small></div>
+  <div class="logicgrid">
+    <div class="logiccard"><b>01 · REPETITIVE + RULE-BASED</b><p>If the task has clear rules, high volume and predictable inputs, automation usually creates the strongest efficiency gain.</p><em>Example: CV parsing, interview reminders, document checks.</em></div>
+    <div class="logiccard"><b>02 · CONTEXT + AMBIGUITY</b><p>If the task requires interpretation, exceptions or relationship judgment, AI should support the human rather than replace them.</p><em>Example: validating shortlist fit for an unusual role.</em></div>
+    <div class="logiccard"><b>03 · HIGH CONSEQUENCE</b><p>If a decision materially affects a person, keep accountable human ownership even when AI prepares evidence.</p><em>Example: final hiring decision or sensitive candidate communication.</em></div>
+    <div class="logiccard"><b>04 · LEARNING POTENTIAL</b><p>A useful augmented task can generate evidence that later makes part of the process safe to automate.</p><em>Example: recruiter overrides become feedback for model improvement.</em></div>
+  </div>
+</section>
+
+<section class="tabworkspace" id="temporalTab">
+  <div class="tabhead"><span>TEMPORAL SCALE</span><small>THE SAME TASK CAN CHANGE MODE OVER TIME</small></div>
+  <div class="timeline">
+    <div><strong>NOW</strong><span>Human + AI work together because the task is still being learned.</span></div>
+    <div><strong>STABLE</strong><span>Evidence accumulates; rules, data quality and model performance become predictable.</span></div>
+    <div><strong>AUTOMATE</strong><span>The stable component moves into automation while exceptions remain supervised.</span></div>
+    <div><strong>CHANGE</strong><span>Role requirements, labour market conditions or model performance shift.</span></div>
+    <div><strong>RECALIBRATE</strong><span>The task can move back toward augmentation until the new process is understood.</span></div>
+  </div>
+</section>
+
+<section class="tabworkspace" id="spatialTab">
+  <div class="tabhead"><span>SPATIAL SCALE</span><small>ONE PROCESS CHANGE CASCADES ACROSS DIFFERENT LEVELS</small></div>
+  <div class="spatialgrid">
+    <div><b>PROCESS</b><strong>What changes immediately?</strong><p>Speed, handoffs, error rates, queues and exception volume.</p></div>
+    <div><b>INDIVIDUAL EMPLOYEE</b><strong>What changes in the job?</strong><p>Routine workload, judgment, skills, autonomy and training needs.</p></div>
+    <div><b>BUSINESS / FUNCTION</b><strong>What changes for HR?</strong><p>Capacity, cost, governance, KPIs, role design and operating model.</p></div>
+    <div><b>ORGANIZATION / MARKET</b><strong>What happens beyond HR?</strong><p>Workforce composition, skill demand, job design and labour-market effects.</p></div>
+  </div>
+</section>
+
+<section class="scenario" id="explain">
+  <h3>01 · CHOOSE THE OPERATING MODEL — THE ARCHITECTURE CHANGES LIVE</h3>
+  <div class="scenarioBtns">
+    <button id="best" class="on">★ RECOMMENDED</button>
+    <button id="auto">AUTOMATE EVERYTHING</button>
+    <button id="aug">AUGMENT EVERYTHING</button>
+  </div>
+  <div class="metrics">
+    <div class="kpi"><b id="mSpeed">High</b><span>SPEED</span></div>
+    <div class="kpi"><b id="mQuality">High</b><span>DECISION QUALITY</span></div>
+    <div class="kpi"><b id="mRisk">Managed</b><span>ACCOUNTABILITY RISK</span></div>
+    <div class="kpi"><b id="mAdapt">High</b><span>ADAPTABILITY</span></div>
+    <div class="kpi"><b id="mRole">Enriched</b><span>HUMAN ROLE</span></div>
+  </div>
+  <div class="rec" id="recommendation">
+    <strong>Recommended:</strong> automate structured, high-volume activities; augment contextual and high-consequence decisions; use the outcome of human–AI collaboration as a feedback loop that can make stable tasks progressively more automatable.
+  </div>
+<div class="examplebox" id="impactExample">
+  <div class="examplehead">
+    <div><span>REAL-WORLD TRANSLATION</span><small id="exampleProcess">AI SCREENING</small></div>
+    <div class="examplemode" id="exampleMode">RECOMMENDED</div>
+  </div>
+  <div class="exampletext" id="exampleText">
+    Imagine a company receiving 1,000 applications for 20 roles. Instead of a recruiter reading every CV, AI can extract qualifications and create a shortlist. The recruiter then checks whether the shortlist actually makes sense for the role.
+  </div>
+  <div class="impactgrid">
+    <div class="impactcol process"><b>PROCESS LEVEL</b><span id="impactProcess">Screening becomes faster; the queue shrinks and recruiters spend more time on shortlisted candidates.</span></div>
+    <div class="impactcol employee"><b>INDIVIDUAL EMPLOYEE</b><span id="impactEmployee">The recruiter does less CV sorting and more validation, judgment and candidate interaction.</span></div>
+    <div class="impactcol business"><b>BUSINESS LEVEL</b><span id="impactBusiness">Hiring capacity increases without increasing administrative headcount, but model quality and fairness need monitoring.</span></div>
+  </div>
+</div>
+  <div class="cascade" id="cascadeDashboard">
+    <div class="row"><span>PROCESS STATE</span><strong id="cascadeState">Recommended baseline</strong></div>
+    <div class="row"><span>THROUGHPUT IMPACT</span><strong class="delta" id="cThroughput">+0%</strong></div>
+    <div class="row"><span>HUMAN EFFORT</span><strong class="delta" id="cEffort">0%</strong></div>
+    <div class="row"><span>DECISION RISK</span><strong class="delta" id="cRisk">0%</strong></div>
+    <div class="row"><span>ADAPTABILITY</span><strong class="delta" id="cAdapt">0%</strong></div>
+    <div class="row"><span>CASCADE</span><strong id="cCascade">Select a process to see downstream effects</strong></div>
+  </div>
+</section>
+
+<section class="scenario" id="temporal">
+  <h3>02 · TEMPORAL SCALE — THE PROCESS CHANGES OVER TIME</h3>
+  <div class="rec">
+    <strong>Augmentation → Automation → Environmental / organizational change → Augmentation / recalibration → possible re-automation.</strong>
+    The point is not to choose one mode forever. A task can migrate between modes as knowledge, criteria and conditions change.
+  </div>
+</section>
+
+<section class="scenario" id="spatial">
+  <h3>03 · SPATIAL SCALE — ONE DECISION CREATES RIPPLE EFFECTS</h3>
+  <div class="rec">
+    <strong>Task → employee role → HR function → organization → labour market.</strong>
+    Automating candidate screening, for example, changes recruiter work, capability requirements, governance and eventually the broader skill structure of recruitment.
+  </div>
+</section>
+</main>
+
+<script>
+
+const tabTargets={
+ architecture:null,
+ logic:"logicTab",
+ temporal:"temporalTab",
+ spatial:"spatialTab"
+};
+document.querySelectorAll("#topTabs button").forEach(btn=>{
+ btn.addEventListener("click",()=>{
+   const tab=btn.dataset.tab;
+   document.querySelectorAll("#topTabs button").forEach(b=>b.classList.toggle("on",b===btn));
+   document.querySelectorAll(".tabworkspace").forEach(x=>x.classList.remove("active"));
+   if(tabTargets[tab]){
+     const target=$(tabTargets[tab]);
+     target.classList.add("active");
+     target.scrollIntoView({behavior:"smooth",block:"start"});
+   }else{
+     document.querySelector(".card").scrollIntoView({behavior:"smooth",block:"start"});
+   }
+ });
+});
+
+const NS="http://www.w3.org/2000/svg";
+const $=id=>document.getElementById(id);
+const C={auto:"#22d3ee",aug:"#a78bfa",hybrid:"#34d399",risk:"#fb923c"};
+
+const NODES=[
+ {id:"demand",x:180,y:95,icon:"📋",name:"Hiring Demand",sub:"ROLE + SKILLS",mode:"hybrid",
+  desc:"Business defines the vacancy, required capabilities and success criteria. This is where the organization decides what the AI is actually being asked to optimize.",
+  inn:["Business need","Role requirements"],out:["Search criteria","Assessment rubric"],auto:"Standard templates speed requirement creation, but may reproduce outdated assumptions.",aug:"Hiring managers and HR challenge the criteria and identify context the model cannot infer.",rec:"AUGMENT"},
+ {id:"source",x:500,y:95,icon:"🔎",name:"Source Candidates",sub:"HIGH VOLUME",mode:"auto",
+  desc:"AI searches candidate pools, identifies potential matches and handles repetitive sourcing activity.",
+  inn:["Role criteria","Candidate pool"],out:["Candidate set"],auto:"Massive throughput and lower administrative effort.",aug:"Recruiters refine search signals when the talent market is unusual or the role is new.",rec:"AUTOMATE"},
+ {id:"screen",x:820,y:95,icon:"⚙️",name:"AI Screen",sub:"STRUCTURED",mode:"auto",
+  desc:"CV parsing, eligibility checks and initial matching against predefined criteria.",
+  inn:["Candidate set"],out:["Ranked candidates"],auto:"Fast, consistent screening at scale; model bias can also scale at scale.",aug:"Human review is valuable while predictors are being discovered or validated.",rec:"AUTOMATE"},
+ {id:"short",x:1140,y:95,icon:"◎",name:"Shortlist Validation",sub:"CONTEXT",mode:"aug",
+  desc:"AI presents a ranked shortlist; recruiters challenge the ranking, inspect evidence and validate contextual fit.",
+  inn:["Ranked candidates"],out:["Validated shortlist"],auto:"Efficient but vulnerable to proxy variables and over-trust in historical patterns.",aug:"Human challenge makes the model accountable to context and exceptions.",rec:"AUGMENT"},
+ {id:"candidate",x:1430,y:95,icon:"🧑",name:"Candidate",sub:"EXPERIENCE",mode:"hybrid",
+  desc:"The candidate receives transparent communications, scheduling and status updates while consequential decisions remain human-owned.",
+  inn:["Messages","Interview","Decision"],out:["Responses","Documents","Feedback"],auto:"Highly scalable communication but risks an impersonal experience.",aug:"Humans handle sensitive or exceptional interactions.",rec:"HYBRID"},
+
+ {id:"schedule",x:260,y:250,icon:"🗓",name:"Schedule & Coordinate",sub:"ROUTINE",mode:"auto",
+  desc:"Interview slots, reminders, document collection and routine communication.",
+  inn:["Validated shortlist"],out:["Interview schedule"],auto:"Near-zero marginal coordination effort and fewer scheduling errors.",aug:"Humans mainly intervene for accessibility needs or exceptions.",rec:"AUTOMATE"},
+ {id:"interview",x:600,y:250,icon:"🎙",name:"Interview",sub:"AMBIGUOUS",mode:"aug",
+  desc:"Structured interviews combine human questioning with AI-supported evidence organization.",
+  inn:["Interview schedule"],out:["Interview evidence"],auto:"Standardization improves, but nuance and changing role requirements are harder to capture.",aug:"Interviewers retain judgment while AI reduces cognitive and administrative load.",rec:"AUGMENT"},
+ {id:"assess",x:940,y:250,icon:"🧠",name:"Assessment Support",sub:"HUMAN + AI",mode:"aug",
+  desc:"AI organizes evidence and surfaces patterns; the recruiter tests assumptions and interprets ambiguous signals.",
+  inn:["Interview evidence","Assessment data"],out:["Decision evidence"],auto:"Fast scoring, but the model can over-weight variables that correlate without explaining fit.",aug:"Human challenge plus machine synthesis produces a more robust decision.",rec:"AUGMENT"},
+ {id:"offer",x:1280,y:250,icon:"✉",name:"Offer & Candidate Care",sub:"HIGH IMPACT",mode:"aug",
+  desc:"AI prepares summaries and checks consistency while humans own the final selection, offer and sensitive communication.",
+  inn:["Decision evidence"],out:["Offer","Rejection","Candidate response"],auto:"Very fast but creates high accountability and fairness exposure.",aug:"Human ownership preserves explanation, exception handling and responsibility.",rec:"AUGMENT"},
+
+ {id:"core",x:800,y:475,icon:"",name:"RECRUITMENT AI CORE",sub:"DATA · RULES · MODELS",mode:"hybrid",
+  desc:"The coordination layer. It connects workflow data, model outputs, human decisions, governance and feedback.",
+  inn:["Process events","Model outputs","Human decisions"],out:["Routing","Recommendations","Feedback"],auto:"Automation engine for stable components.",aug:"Governance and human challenge remain attached to the core.",rec:"INTEGRATE"},
+ {id:"govern",x:430,y:475,icon:"🛡",name:"Governance Gate",sub:"BIAS · AUDIT · CONTROL",mode:"aug",
+  desc:"Monitors model performance, fairness, explainability and escalation conditions.",
+  inn:["Model outputs","Outcome data"],out:["Approve","Escalate","Recalibrate"],auto:"Rules can automate routine checks but cannot eliminate accountability.",aug:"Human oversight handles material exceptions and model-risk decisions.",rec:"AUGMENT"},
+ {id:"human",x:1170,y:475,icon:"👤",name:"Human Decision Owner",sub:"ACCOUNTABILITY",mode:"aug",
+  desc:"A named human remains accountable for high-consequence decisions and can override the system.",
+  inn:["Decision evidence","Governance alerts"],out:["Final decision","Override","Feedback"],auto:"Removing ownership increases accountability risk.",aug:"Human ownership provides judgment, challenge and explainability.",rec:"AUGMENT"},
+
+ {id:"learn",x:180,y:700,icon:"↻",name:"Outcome Learning",sub:"FEEDBACK LOOP",mode:"hybrid",
+  desc:"Hiring outcomes, recruiter feedback and candidate feedback are fed back into criteria, data and models.",
+  inn:["Hiring outcomes","Feedback"],out:["Model updates","Criteria updates"],auto:"Stable feedback signals can be processed automatically.",aug:"Experts diagnose drift and decide what should change.",rec:"AUGMENT → AUTO"},
+ {id:"reskill",x:500,y:700,icon:"👥",name:"Recruiter Role",sub:"WORK REDESIGN",mode:"hybrid",
+  desc:"Automation removes routine work; augmentation shifts recruiters toward judgment, relationships, exception handling and AI governance.",
+  inn:["Workflow redesign","AI recommendations"],out:["Human capacity","New skills"],auto:"Can reduce routine workload but risks deskilling if humans disappear from the loop.",aug:"Enriches work but requires training and role redesign.",rec:"RESKILL"},
+ {id:"hr",x:820,y:700,icon:"▣",name:"HR Function",sub:"ORGANIZATIONAL LEVEL",mode:"hybrid",
+  desc:"The operating model changes HR metrics, capabilities, controls, staffing and the relationship between HR and business leaders.",
+  inn:["Recruiter capacity","Decision quality"],out:["Capability model","Policies","KPIs"],auto:"Scale and speed rise, but dependence and rigidity rise too.",aug:"Adaptability and expertise rise, but coordination costs remain.",rec:"INTEGRATE"},
+ {id:"org",x:1140,y:700,icon:"🏢",name:"Organization",sub:"SYSTEM EFFECT",mode:"hybrid",
+  desc:"Hiring technology changes workforce composition, capability development and strategic decision-making.",
+  inn:["HR capabilities","Hiring outcomes"],out:["Strategy","Workforce design"],auto:"Productivity gains can be large if governance is strong.",aug:"Higher contextual capability, but slower scaling.",rec:"BALANCE"},
+ {id:"market",x:1430,y:700,icon:"🌐",name:"Labour Market",sub:"SOCIETAL EFFECT",mode:"hybrid",
+  desc:"Cumulative adoption can change skill demand, job design, access and the distribution of opportunity.",
+  inn:["Workforce design","Industry response"],out:["New skill demand","New norms"],auto:"Potential displacement or deskilling if gains are not reinvested.",aug:"Potentially richer jobs, but access may favour highly skilled workers.",rec:"MANAGE"},
+
+ {id:"recal",x:500,y:900,icon:"🔄",name:"Recalibration",sub:"CHANGE DETECTION",mode:"hybrid",
+  desc:"Detects drift: changing job requirements, candidate behaviour, labour-market conditions or model performance.",
+  inn:["Drift signals","Governance"],out:["Retraining","Process redesign"],auto:"Automated monitoring can detect changes quickly.",aug:"Humans decide whether a detected change requires a new model, new criteria or a different workflow.",rec:"HYBRID"},
+ {id:"stable",x:900,y:900,icon:"✓",name:"Stable Task",sub:"READY FOR AUTOMATION",mode:"hybrid",
+  desc:"A task becomes sufficiently predictable, measurable and governed to move toward automation.",
+  inn:["Validated model","Stable process"],out:["Automation candidate"],auto:"Move stable components into automation.",aug:"Keep human review until evidence supports migration.",rec:"AUTO WHEN READY"},
+ {id:"soc",x:1260,y:900,icon:"↺",name:"Continuous Operating Loop",sub:"TEMPORAL SCALE",mode:"hybrid",
+  desc:"The system is intentionally cyclical: augmentation can produce the knowledge needed for automation, while change can return a task to augmentation.",
+  inn:["Change","Learning","Governance"],out:["New operating model"],auto:"Automation is not the endpoint.",aug:"Augmentation is not the endpoint either.",rec:"CONTINUOUS"}
+];
+
+const EDGES=[
+ ["demand","source","hybrid",-35,2],["source","screen","auto",0,3],["screen","short","auto",0,3],["short","candidate","aug",30,2],
+ ["short","schedule","aug",-65,2],["schedule","interview","auto",20,3],["interview","assess","aug",0,3],["assess","offer","aug",0,3],["offer","candidate","aug",35,2],
+ ["source","core","auto",80,1],["screen","core","auto",30,1],["short","core","aug",-55,2],["schedule","core","auto",-20,1],
+ ["interview","core","aug",55,1],["assess","core","aug",-25,2],["offer","core","aug",-85,1],
+ ["core","govern","aug",-95,2],["core","human","aug",85,2],["govern","human","aug",35,2],["human","candidate","aug",80,1],
+ ["human","learn","hybrid",-110,1],["core","learn","hybrid",-80,2],["learn","recal","hybrid",0,2],["recal","core","hybrid",-120,1],
+ ["learn","reskill","hybrid",30,2],["reskill","hr","hybrid",0,2],["hr","org","hybrid",0,2],["org","market","hybrid",0,2],
+ ["market","recal","hybrid",150,1],["govern","recal","hybrid",70,1],["recal","stable","hybrid",0,2],["stable","screen","auto",-160,1],
+ ["stable","schedule","auto",-70,1],["stable","assess","aug",60,1],["soc","recal","hybrid",-100,1],["recal","soc","hybrid",100,1],
+ ["hr","core","hybrid",-90,1]
+];
+
+const BANDS=[
+ ["01 · BUSINESS DEMAND & ENTRY",95],
+ ["02 · CANDIDATE PROCESS",250],
+ ["03 · AI + HUMAN DECISION CORE",475],
+ ["04 · ORGANIZATIONAL IMPACT",700],
+ ["05 · TEMPORAL RE-ENTRY LOOP",900]
+];
+
+const svg=$("diagram"), byId=Object.fromEntries(NODES.map(n=>[n.id,n])), parts=[];
+const el=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e};
+
+BANDS.forEach(([label,y])=>{
+ const t=el("text",{x:36,y:y-32,class:"band-lbl"});t.textContent=label;$("bands").appendChild(t);
+ $("bands").appendChild(el("line",{x1:36,y1:y-22,x2:1564,y2:y-22,class:"band-line"}));
+});
+
+function makePath(a,b,bend){
+ const mx=(a.x+b.x)/2,my=(a.y+b.y)/2,dx=b.x-a.x,dy=b.y-a.y,L=Math.hypot(dx,dy)||1;
+ return `M ${a.x} ${a.y} Q ${mx-dy/L*bend} ${my+dx/L*bend} ${b.x} ${b.y}`;
+}
+
+EDGES.forEach(([f,t,type,bend,n])=>{
+ const a=byId[f],b=byId[t],p=el("path",{d:makePath(a,b,bend),class:"edge "+type,stroke:C[type]});
+ p.dataset.from=f;p.dataset.to=t;p.dataset.base=type;$("edges").appendChild(p);
+ const len=p.getTotalLength();
+ for(let i=0;i<n;i++){
+  const c=el("circle",{r:3,fill:C[type],class:"particle",filter:"url(#glow)"});
+  $("particles").appendChild(c);parts.push({c,p,len,ph:i/n,sp:0.16+Math.random()*.07});
+ }
+});
+
+function modeClass(n,scenario){
+ if(["core","learn","recal","stable","soc","reskill","hr","org","market","human","govern"].includes(n.id)) return n.mode;
+ if(scenario==="auto") return "auto";
+ if(scenario==="aug") return "aug";
+ return n.mode;
+}
+
+NODES.forEach(n=>{
+ const g=el("g",{class:"node "+n.mode,transform:`translate(${n.x},${n.y})`});g.dataset.id=n.id;
+ if(n.id==="core"){
+  const r1=el("circle",{r:96,class:"core-ring"});r1.style.transformOrigin="0 0";
+  const r2=el("circle",{r:82,class:"core-ring2"});r2.style.transformOrigin="0 0";
+  g.append(r1,r2,el("circle",{r:66,fill:"url(#coreGrad)",stroke:C.auto,"stroke-width":1.7}));
+  const a=el("text",{x:0,y:-5,class:"n-name","text-anchor":"middle","font-size":"15px","letter-spacing":"2"});a.textContent=n.name;
+  const b=el("text",{x:0,y:14,class:"n-sub","text-anchor":"middle"});b.textContent=n.sub;g.append(a,b);
+ }else{
+  g.appendChild(el("rect",{x:-95,y:-28,width:190,height:56,rx:13}));
+  const ic=el("text",{x:-77,y:6,class:"n-icon","text-anchor":"middle"});ic.textContent=n.icon;
+  const nm=el("text",{x:-58,y:-4,class:"n-name"});nm.textContent=n.name.length>22?n.name.slice(0,21)+"…":n.name;
+  const sb=el("text",{x:-58,y:13,class:"n-sub"});sb.textContent=n.sub.length>27?n.sub.slice(0,26)+"…":n.sub;
+  const md=el("text",{x:78,y:22,class:"mode","text-anchor":"end"});md.textContent=n.rec;
+  g.append(ic,nm,sb,md);
+ }
+ g.addEventListener("click",e=>{e.stopPropagation();selectNode(n)});
+ g.addEventListener("mouseenter",()=>trace(n.id,true));
+ g.addEventListener("mouseleave",()=>trace(n.id,false));
+ $("nodes").appendChild(g);
+});
+
+function trace(id,on){
+ document.querySelectorAll(".edge").forEach(e=>e.classList.toggle("dim",on && e.dataset.from!==id && e.dataset.to!==id));
+ document.querySelectorAll(".particle").forEach(c=>{
+  const p=c.parentNode===null?null:parts.find(x=>x.c===c);
+  if(p)c.classList.toggle("dim",on && p.p.dataset.from!==id && p.p.dataset.to!==id);
+ });
+}
+
+function selectNode(n){
+ document.querySelectorAll(".node").forEach(x=>x.classList.toggle("sel",x.dataset.id===n.id));
+ $("panel").classList.add("open");
+ const current=n.mode==="hybrid"?"hybrid":n.mode;
+ $("panel").innerHTML=`
+ <button id="btnClose">✕</button>
+ <div class="tag">PROCESS INSPECTOR</div>
+ <h3>${n.icon?n.icon+" ":""}${n.name}</h3>
+ <p style="color:#9fb3d1">${n.desc}</p>
+ <div class="io"><b>IN</b><ul>${n.inn.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+ <div class="io"><b>OUT</b><ul>${n.out.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+ <div class="process-controls">
+   <b>CHOOSE OPERATING MODE</b>
+   <div class="process-buttons">
+    <button data-mode="auto" class="auto ${current==="auto"?"active":""}">⚡ AUTOMATE</button>
+    <button data-mode="aug" class="aug ${current==="aug"?"active":""}">◈ AUGMENT</button>
+    <button data-mode="manual" class="manual ${current==="manual"?"active":""}">● MANUAL</button>
+   </div>
+ </div>
+ <div class="choice">
+  <div><b style="color:var(--cyan)">AUTOMATED</b><span>${n.auto}</span></div>
+  <div><b style="color:var(--violet)">AUGMENTED</b><span>${n.aug}</span></div>
+ </div>
+ <div class="recommend"><b>BASE RECOMMENDATION</b><br>${n.rec}</div>`;
+ $("btnClose").onclick=closePanel;
+ document.querySelectorAll("#panel .process-buttons button").forEach(btn=>{
+   btn.onclick=()=>setNodeMode(n.id,btn.dataset.mode);
+ });
+ traceCascade(n.id);
+ updateExample(n);
+}
+
+function setNodeMode(id,mode){
+ const n=byId[id];
+ n.mode=mode;
+ const g=document.querySelector(`.node[data-id="${id}"]`);
+ g.classList.remove("auto","aug","hybrid","manual");
+ g.classList.add(mode);
+ const connected=document.querySelectorAll(".edge");
+ connected.forEach(e=>{
+   if(e.dataset.from===id || e.dataset.to===id){
+     e.classList.remove("auto","aug","hybrid","manual");
+     e.classList.add(mode==="manual"?"manual":mode==="auto"?"auto":mode==="aug"?"aug":"hybrid");
+   }
+ });
+ updateCascade();
+ selectNode(n);
+ updateExample(n);
+}
+function updateExample(n){
+ const mode=n.mode==="manual"?"MANUAL":n.mode==="auto"?"AUTOMATED":n.mode==="aug"?"AUGMENTED":"RECOMMENDED";
+ $("exampleProcess").textContent=n.name.toUpperCase();
+ $("exampleMode").textContent=mode;
+ const examples={
+  auto:{
+   text:`Imagine a company receiving 1,000 applications for 20 roles. ${n.name} is handled automatically, so the system processes the repetitive part at machine speed while people focus on exceptions and consequential decisions.`,
+   p:`The repetitive queue gets shorter, handoffs reduce and cycle time falls. Exceptions become the new queue.`,
+   e:`The employee spends less time on routine processing and more time monitoring, handling exceptions and checking system outputs.`,
+   b:`The business gets more capacity from the same team. The trade-off is greater dependence on data, model quality and governance.`
+  },
+  aug:{
+   text:`Imagine a recruiter using AI as a co-pilot for ${n.name}. The system prepares evidence or recommendations, but the recruiter actively challenges the output before moving the case forward.`,
+   p:`The process becomes faster without removing the judgment step. Handoffs are redesigned rather than eliminated.`,
+   e:`The employee shifts from doing the repetitive work to reviewing, interpreting, challenging and deciding.`,
+   b:`The business gets productivity gains while retaining contextual judgment and accountability. Training and role redesign become important.`
+  },
+  manual:{
+   text:`Imagine the team handling ${n.name} entirely by hand. Every case receives human attention, which can be useful where the work is unusual or highly consequential.`,
+   p:`The process becomes slower and more dependent on individual availability. Queues and handoffs can increase.`,
+   e:`The employee carries more workload and retains more direct control, but routine work consumes time that could be spent elsewhere.`,
+   b:`The business gets maximum direct human control, but usually at higher operating cost and lower scale.`
+  },
+  hybrid:{
+   text:`Imagine ${n.name} using a balanced human–AI workflow: machines handle structured work while people own context, exceptions and consequential choices.`,
+   p:`Routine work accelerates while human checkpoints remain where they add the most value.`,
+   e:`The employee's role becomes more judgment-oriented rather than purely administrative.`,
+   b:`The business balances scale, quality, accountability and adaptability.`
+  }
+ };
+ const x=examples[n.mode]||examples.hybrid;
+ $("exampleText").textContent=x.text;
+ $("impactProcess").textContent=x.p;
+ $("impactEmployee").textContent=x.e;
+ $("impactBusiness").textContent=x.b;
+} 
+
+function traceCascade(id){
+ document.querySelectorAll(".edge").forEach(e=>e.classList.remove("cascade"));
+ const downstream=new Set([id]);
+ let changed=true;
+ while(changed){
+   changed=false;
+   EDGES.forEach(([f,t])=>{
+     if(downstream.has(f) && !downstream.has(t)){downstream.add(t);changed=true}
+   });
+ }
+ document.querySelectorAll(".edge").forEach(e=>{
+   if(downstream.has(e.dataset.from) && downstream.has(e.dataset.to) && e.dataset.from!==id)
+     e.classList.add("cascade");
+ });
+ document.querySelectorAll(".node").forEach(g=>g.classList.toggle("hot",downstream.has(g.dataset.id)&&g.dataset.id!==id));
+ const names=[...downstream].map(x=>byId[x].name);
+ $("cCascade").textContent=names.slice(0,5).join(" → ")+(names.length>5?" → …":"");
+ $("cascadeState").textContent=`${byId[id].name} → ${names.length-1} downstream processes`;
+}
+function updateCascade(){
+ let auto=0,aug=0,manual=0,total=0;
+ NODES.forEach(n=>{
+   if(["demand","source","screen","short","schedule","interview","assess","offer","govern","human"].includes(n.id)){
+     total++; if(n.mode==="auto")auto++; else if(n.mode==="aug"||n.mode==="hybrid")aug++; else manual++;
+   }
+ });
+ const throughput=Math.round((auto*11+aug*4-manual*3));
+ const effort=Math.round((manual*9+aug*3-auto*7));
+ const risk=Math.round((auto*6-manual*3));
+ const adapt=Math.round((aug*7+manual*5-auto*4));
+ $("cThroughput").textContent=(throughput>=0?"+":"")+throughput+"%";
+ $("cEffort").textContent=(effort>=0?"+":"")+effort+"%";
+ $("cRisk").textContent=(risk>=0?"+":"")+risk+"%";
+ $("cAdapt").textContent=(adapt>=0?"+":"")+adapt+"%";
+ $("cThroughput").style.color=throughput>=0?"var(--cyan)":"var(--orange)";
+ $("cEffort").style.color=effort<=0?"var(--emerald)":"var(--orange)";
+ $("cRisk").style.color=risk<=0?"var(--emerald)":"var(--orange)";
+ $("cAdapt").style.color=adapt>=0?"var(--emerald)":"var(--orange)";
+}
+function closePanel(){$("panel").classList.remove("open");document.querySelectorAll(".node").forEach(x=>x.classList.remove("sel"))}
+svg.addEventListener("click",closePanel);
+
+let scenario="best",playing=true,speedMul=1,acc=0,last=performance.now();
+const scenarioData={
+ best:{speed:["High","High","Managed","High","Enriched"],text:"<strong>Recommended:</strong> automate structured, high-volume activities; augment contextual and high-consequence decisions; use the outcome of human–AI collaboration as a feedback loop that can make stable tasks progressively more automatable."},
+ auto:{speed:["Very high","Medium","High","Low","Narrower"],text:"<strong>Automation-heavy:</strong> maximizes throughput, but concentrates model, bias, rigidity and accountability risks—especially at shortlist validation, assessment and final selection."},
+ aug:{speed:["Medium","Very high","Managed","Very high","Enriched"],text:"<strong>Augmentation-heavy:</strong> maximizes contextual judgment and adaptability, but leaves scale and routine efficiency on the table. Automate the repetitive parts instead of making humans do machine-like work."}
+};
+function setScenario(s){
+ scenario=s;
+ ["best","auto","aug"].forEach(x=>$(x).classList.toggle("on",x===s));
+ const v=scenarioData[s].speed;
+ $("mSpeed").textContent=v[0];$("mQuality").textContent=v[1];$("mRisk").textContent=v[2];$("mAdapt").textContent=v[3];$("mRole").textContent=v[4];
+ $("recommendation").innerHTML=scenarioData[s].text;
+ document.querySelectorAll(".node").forEach(g=>{
+  const n=byId[g.dataset.id],m=modeClass(n,s);
+  if(!["demand","source","screen","short","schedule","interview","assess","offer","govern","human"].includes(n.id)){
+    g.classList.remove("auto","aug","hybrid","manual");g.classList.add(m);
+  } else {
+    n.mode=m==="hybrid"?"aug":m;
+    g.classList.remove("auto","aug","hybrid","manual");g.classList.add(n.mode);
+  }
+ });
+ updateCascade();
+ document.querySelectorAll(".edge").forEach(e=>{
+  const from=byId[e.dataset.from],to=byId[e.dataset.to];
+  const isCore=e.dataset.base==="hybrid";
+  e.classList.toggle("hot",s==="best" || (s==="auto"&&!isCore) || (s==="aug"&&isCore));
+ });
+}
+$("best").onclick=()=>setScenario("best");
+$("auto").onclick=()=>setScenario("auto");
+$("aug").onclick=()=>setScenario("aug");
+
+function frame(t){
+ if(playing){
+  acc+=(t-last)*speedMul;
+  parts.forEach(o=>{
+   const q=((acc/1000)*o.sp+o.ph)%1,pos=o.p.getPointAtLength(q*o.len);
+   o.c.setAttribute("cx",pos.x);o.c.setAttribute("cy",pos.y);
+   o.c.style.opacity=(q<.025||q>.975)?.18:.82;
+  });
+ }
+ last=t;requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+$("pause").onclick=()=>{playing=!playing;$("pause").textContent=playing?"⏸":"▶"};
+const speeds=[1,1.5,2,.5];let si=0;
+$("speed").onclick=()=>{si=(si+1)%4;speedMul=speeds[si];$("speed").textContent=speeds[si]+"×"};
+let zoom=1;
+function applyZoom(){const base=Math.max(900,$("scrollwrap").clientWidth);svg.style.width=Math.round(base*zoom)+"px"}
+$("zoomIn").onclick=()=>{zoom=Math.min(2.4,zoom*1.25);applyZoom()};
+$("zoomOut").onclick=()=>{zoom=Math.max(.6,zoom/1.25);applyZoom()};
+$("fit").onclick=()=>{zoom=1;applyZoom();$("scrollwrap").scrollLeft=0};
+window.addEventListener("resize",applyZoom);
+
+let cand=1248,time=18;
+setInterval(()=>{
+ if(!playing)return;
+ cand+=Math.floor(Math.random()*4);
+ time=Math.max(8,time-.2);
+ $("sCand").textContent=cand.toLocaleString();
+ $("sTime").textContent=Math.round(time)+"m";
+},1100);
+
+setScenario("best");updateCascade();updateExample(byId["screen"]);applyZoom();
+</script>
+</body>
+</html>
